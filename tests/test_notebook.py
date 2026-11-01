@@ -110,3 +110,49 @@ def test_entry_types_constant():
     assert "opening_line" in ENTRY_TYPES
     assert "trap" in ENTRY_TYPES
     assert "refutation" in ENTRY_TYPES
+
+
+def test_empty_pgn_allowed(tmp_storage):
+    entry = Entry(title="Draft", entry_type="opening_line", pgn="", review_date="2027-01-01")
+    assert entry.pgn == ""
+
+
+def test_id_uniqueness(tmp_storage):
+    entry_a = Entry(title="A", entry_type="opening_line", pgn=SAMPLE_PGN, review_date="2027-01-01")
+    entry_b = Entry(title="B", entry_type="opening_line", pgn=SAMPLE_PGN, review_date="2027-01-02")
+    assert entry_a.id != entry_b.id
+
+
+def test_cli_review_and_list_due(tmp_storage):
+    db = tmp_storage.path
+    main(["--db", db, "add", "--title", "Soon", "--type", "trap",
+          "--pgn", "1. e4 e5", "--review-date", "2030-01-01"])
+    main(["--db", db, "add", "--title", "Later", "--type", "opening_line",
+          "--pgn", "1. d4 d5", "--review-date", "2099-01-01"])
+
+    # Nothing due before 2030
+    due = tmp_storage.list(due_only=True, as_of="2029-12-31")
+    assert len(due) == 0
+
+    # review --as-of 2030-06-01 catches "Soon" but not "Later"
+    assert main(["--db", db, "review", "--as-of", "2030-06-01"]) == 0
+    entries = tmp_storage.list(due_only=True, as_of="2030-06-01")
+    assert len(entries) == 1
+    assert entries[0].title == "Soon"
+
+
+def test_cli_export_json(tmp_storage):
+    db = tmp_storage.path
+    tmp_storage.add(Entry(title="Z", entry_type="refutation", pgn=SAMPLE_PGN, review_date="2027-01-01"))
+    out = os.path.join(tempfile.gettempdir(), "chess_notebook_cli_export_json.json")
+    assert main(["--db", db, "export", "--format", "json", "--out", out]) == 0
+    with open(out) as fh:
+        data = json.load(fh)
+    assert len(data) == 1
+    assert data[0]["title"] == "Z"
+    assert data[0]["entry_type"] == "refutation"
+
+
+def test_show_missing_entry_returns_error_code(tmp_storage):
+    db = tmp_storage.path
+    assert main(["--db", db, "show", "--id", "nonexistent"]) == 1

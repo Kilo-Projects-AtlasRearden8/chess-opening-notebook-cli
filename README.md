@@ -1,22 +1,35 @@
 # Chess Opening Notebook CLI
 
-A local-first Python CLI for chess players to log opening lines, traps, and refutations with PGN snippets and review dates. Export your notebook to JSON or CSV. No accounts, no API keys, no network — everything stays on your machine.
+A friendly, local-first command-line tool for chess players to log opening lines, traps, and refutations — complete with PGN snippets and review dates. Export your notebook to JSON or CSV whenever you like.
 
-Built and maintained by [Asdale Dynamics, LLC](https://dylanasdale.github.io) — beginner-friendly AI education, books, and practical tools. Credit: Asdale Dynamics, LLC.
+No accounts, no API keys, no network connection required. Everything lives on your machine in a single JSON file.
+
+Built by [Asdale Dynamics, LLC](https://dylanasdale.github.io) — beginner-friendly AI education, books, and practical tools. Credit: Asdale Dynamics, LLC.
+
+## Who this is for
+
+This is one of the "fun extras" from Asdale Dynamics, LLC, the company founded by Dylan Asdale — a registered nurse turned AI author in Indiana. Dylan writes *The Massive AI Manual* and runs the hub site dylanasdale.github.io, explaining technology "like a friend would": plain English, step by step, never condescending.
+
+If you're a chess player who wants a simple, private place to keep track of the openings you're studying, the traps you've spotted, and the refutations that shut them down, this tool is for you. It's designed to be approachable whether you're new to the command line or a longtime player.
 
 ## Install
 
+You'll need Python 3.9 or newer.
+
 ```bash
+# Get the code
 git clone <this-repo>
 cd chess-opening-notebook-cli
+
+# Install the chess-notebook command
 pip install -e .
 ```
 
-This installs the `chess-notebook` command.
+This installs a `chess-notebook` command you can run from anywhere.
 
-## Usage
+## Use it step by step
 
-Add an opening line:
+### 1. Add an opening line
 
 ```bash
 chess-notebook add \
@@ -28,7 +41,7 @@ chess-notebook add \
   --notes "Study the main line variations"
 ```
 
-Add a trap:
+### 2. Add a trap
 
 ```bash
 chess-notebook add \
@@ -39,7 +52,7 @@ chess-notebook add \
   --notes "Queen and knight fork trap"
 ```
 
-Add a refutation:
+### 3. Add a refutation
 
 ```bash
 chess-notebook add \
@@ -50,41 +63,65 @@ chess-notebook add \
   --notes "...Qh4+ refutes the sacrifice"
 ```
 
-List entries:
+Each entry gets a short id (like `a1b2c3d4e5f6`) that you can use to look it up later.
+
+### 4. List your entries
 
 ```bash
+# See everything
 chess-notebook list
+
+# Only traps
 chess-notebook list --type trap
+
+# Only entries due for review today or earlier
 chess-notebook list --due
 ```
 
-Show one entry:
+### 5. Show one entry in full
 
 ```bash
-chess-notebook show --id <id>
+chess-notebook show --id a1b2c3d4e5f6
 ```
 
-Review entries due today:
+### 6. Review what's due
 
 ```bash
+# Due on or before today
 chess-notebook review
+
+# Due on or before a specific date
 chess-notebook review --as-of 2027-03-01
 ```
 
-Export to JSON or CSV:
+### 7. Export your notebook
 
 ```bash
 chess-notebook export --format json --out notebook.json
 chess-notebook export --format csv --out notebook.csv
 ```
 
-Use `--db <path>` to store the notebook somewhere other than `./chess_notebook.json`.
+Use `--db <path>` with any command if you'd rather store the notebook somewhere besides `./chess_notebook.json`.
 
-## Data model
+## What's in an entry
 
-Each entry has: id, title, type (opening_line | trap | refutation), PGN snippet, FEN (optional), review date, notes, tags, and created-at timestamp. PGN is validated with [python-chess](https://pypi.org/project/chess/) when an entry is added.
+| Field | What it means |
+|-------|---------------|
+| id | Short unique id (generated for you) |
+| title | A name you give the entry |
+| type | `opening_line`, `trap`, or `refutation` |
+| pgn | The PGN move snippet |
+| fen | Optional starting position |
+| review_date | When you'd like to review this (YYYY-MM-DD) |
+| notes | Free-form notes |
+| tags | Comma-separated tags |
+| created_at | When the entry was added |
 
-Storage is a single local JSON file. CSV export preserves id, title, entry_type, pgn, fen, review_date, notes, tags, and created_at.
+PGN snippets are checked with [python-chess](https://pypi.org/project/chess/) when you add them, so typos are caught right away.
+
+## Storage
+
+Your notebook is a single local JSON file (default: `./chess_notebook.json`). Nothing is sent anywhere. Export to JSON or CSV whenever you want a backup or to open your data in a spreadsheet.
 
 ## Tests
 
